@@ -21,7 +21,7 @@ settings = get_settings()
 app = FastAPI(
     title=settings.app_name,
     version=settings.app_version,
-    description="Backend API for F1 Intelligence System",
+    description="Backend API for Pitwall",
 )
 
 

@@ -1,4 +1,4 @@
-"""FastAPI routes for F1 Intelligence System.
+"""FastAPI routes for Pitwall.
 
 Errors are mapped centrally in app.main: NotFoundError → 404, anything unexpected → 500.
 """

@@ -1,4 +1,4 @@
-# F1 Intelligence System — Roadmap
+# Pitwall — Roadmap
 
 > Last updated: 2026-10-16 · Status legend: ✅ done · 🟡 partial · ⬜ not started
 
@@ -131,6 +131,7 @@ No database, Redis or WebSocket until a feature actually needs one. Historical d
 
 ### 2.4 Release v0.1 — S ⬜
 - Deploy: API in a Docker container with a persistent volume for the FastF1 cache; web as a static site
+- The cache must be warmed locally and shipped, since cloud hosts can't reach F1's live-timing servers (see Data caveats). Check the target host can serve a cold session before committing to it.
 - README with screenshots and a demo link; 3–5 preloaded showcase sessions
 
 **Done when:** a stranger can open the public URL and compare two laps without instructions.
@@ -248,6 +249,7 @@ Live timing via OpenF1 · strategy what-if simulator · image/video export · vo
 | No fuel, tyre temperature, ERS or brake temperature data | Never display them; fuel load is modelled, not measured |
 | 2026 rules replace DRS with active aero and an overtake mode | DRS-based features apply to ≤ 2025; check what the DRS channel means for 2026 sessions |
 | Cold session loads download a lot of data | Precompute or warm the demo sessions; show progress |
+| F1's live-timing servers (and FastF1's mirror) reject cloud IPs; confirmed on GitHub Actions | CI skips `livedata` tests. A cloud-hosted API can't download sessions itself: ship a warmed cache with it |
 
 ## Engineering standards
 

@@ -7,7 +7,7 @@ export function Header() {
     <header className="header">
       <div className="header-left">
         <img src={logoF1} alt="F1" className="logo-f1-img" />
-        <div className="logo-text">Intelligence</div>
+        <div className="logo-text">Pitwall</div>
       </div>
       <div className="header-center">
         <SessionSelector />

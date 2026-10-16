@@ -1,6 +1,8 @@
-# F1 Intelligence System
+# Pitwall
 
-An AI-powered Formula One race engineering platform that turns raw FastF1 telemetry into interactive race analysis.
+**Race engineering intelligence for Formula 1.** Pitwall turns raw FastF1 telemetry into interactive race analysis, and explains where the time was won or lost instead of only charting it.
+
+> Unofficial fan project. Not affiliated with Formula 1, the FIA or any team. F1 and Formula 1 are trademarks of Formula One Licensing B.V.
 
 ## Repository layout
 

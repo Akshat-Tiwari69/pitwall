@@ -13,11 +13,15 @@ client = TestClient(app)
 BASE = "/api/v1/sessions/2024/Bahrain/R"
 KEY = (2024, 1, "Race")  # (year, round, session name) — see f1_data._session_key
 
+# Needs full timing data from F1's live-timing servers, which block CI runners (see pyproject).
+livedata = pytest.mark.livedata
+
 
 def test_health():
     assert client.get("/health").json()["status"] == "ok"
 
 
+@livedata
 def test_session_endpoints_share_one_load():
     f1_data._session_cache.clear()
     paths = ["/results", "/laps", "/weather", "/race-control"]
@@ -44,13 +48,13 @@ def test_event_aliases_share_one_session():
 
 @pytest.mark.parametrize("path, detail", [
     ("/sessions/2024/Atlantis/R/results", "No event"),  # plain FastF1 fuzzy-matches Australia
-    ("/sessions/2024/United States/R/results", "several"),         # Miami, Austin, Las Vegas
-    ("/sessions/2024/China/FP3/results", "does not exist"),        # sprint weekend
+    ("/sessions/2024/United States/R/results", "several"),  # Miami, Austin, Las Vegas
+    ("/sessions/2024/China/FP3/results", "does not exist"),  # sprint weekend
     ("/sessions/2024/Bahrain/X/results", "Invalid session type"),
     ("/sessions/2099/Bahrain/R/results", "No data for season"),
     ("/seasons?year=2017", "No data for season"),
-    ("/sessions/2024/Bahrain/R/telemetry/XXX/0", "No laps for driver"),
-    ("/sessions/2024/Bahrain/R/telemetry/VER/999", "has no lap 999"),
+    pytest.param("/sessions/2024/Bahrain/R/telemetry/XXX/0", "No laps for driver", marks=livedata),
+    pytest.param("/sessions/2024/Bahrain/R/telemetry/VER/999", "has no lap 999", marks=livedata),
 ])
 def test_not_found(path, detail):
     r = client.get("/api/v1" + path)
@@ -63,6 +67,7 @@ def test_current_season_listed():
     assert client.get(f"/api/v1/seasons?year={year}").json()[0]["year"] == year
 
 
+@livedata
 def test_telemetry_upgrades_cached_session():
     client.get(BASE + "/results")
     assert client.get(BASE + "/track-outline").status_code == 200

@@ -10,7 +10,7 @@ class Settings(BaseSettings):
     """Application settings loaded from environment variables."""
 
     # Application
-    app_name: str = "F1 Intelligence System"
+    app_name: str = "Pitwall"
     app_version: str = "0.1.0"
     debug: bool = True
 

@@ -26,7 +26,8 @@ jobs:
           restore-keys: fastf1-
       - run: pip install -r requirements.txt
       - run: ruff check app tests
-      - run: pytest -q
+      # F1 live-timing servers reject GitHub runners, so full-session tests only run locally.
+      - run: pytest -q -m "not livedata"
 
   web:
     runs-on: ubuntu-latest
