@@ -1,0 +1,67 @@
+.dashboard-view {
+  display: flex;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+}
+
+/* ── Left: Timing Tower ── */
+.dv-tower {
+  width: 220px;
+  min-width: 220px;
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid var(--border-default);
+  overflow: hidden;
+}
+
+/* ── Right: stacked telemetry + bottom row ── */
+.dv-right {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.dv-telemetry {
+  flex: 11;
+  display: flex;
+  flex-direction: column;
+  border-bottom: 1px solid var(--border-default);
+  overflow: hidden;
+}
+
+/* ── Bottom row: lap data + track ── */
+.dv-bottom {
+  flex: 9;
+  display: flex;
+  overflow: hidden;
+}
+
+.dv-laps {
+  flex: 3;
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid var(--border-default);
+  overflow: hidden;
+}
+
+.dv-track {
+  flex: 2;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* ── Shared panel header ── */
+.panel-header {
+  padding: 6px var(--space-3);
+  border-bottom: 1px solid var(--border-default);
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text-muted);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  background-color: var(--bg-surface);
+  flex-shrink: 0;
+}

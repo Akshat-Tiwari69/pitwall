@@ -1,0 +1,110 @@
+.timing-tower {
+  display: flex;
+  flex-direction: column;
+  background-color: var(--bg-surface);
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.timing-tower--state {
+  justify-content: center;
+  align-items: center;
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
+
+.tower-header {
+  display: flex;
+  align-items: center;
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--text-xs);
+  font-weight: 700;
+  color: var(--text-muted);
+  letter-spacing: 0.06em;
+  border-bottom: 1px solid var(--border-default);
+  position: sticky;
+  top: 0;
+  background-color: var(--bg-surface);
+  z-index: 2;
+  flex-shrink: 0;
+}
+
+.th-pos    { width: 28px; }
+.th-dot    { width: 14px; flex-shrink: 0; }
+.th-driver { flex: 1; }
+.th-gap    { width: 64px; text-align: right; }
+
+.tower-body {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.tower-row {
+  display: flex;
+  align-items: center;
+  padding: 5px var(--space-2) 5px var(--space-3);
+  border-bottom: 1px solid var(--border-subtle);
+  cursor: pointer;
+  transition: background-color 0.1s;
+  gap: 6px;
+}
+
+.tower-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.tower-row:hover   { background-color: var(--bg-hover); }
+.tower-row.selected { background-color: var(--bg-active); }
+
+.tower-pos {
+  width: 22px;
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--text-muted);
+  font-family: var(--font-data);
+  flex-shrink: 0;
+}
+
+.tower-driver {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.driver-abbr {
+  font-weight: 700;
+  font-size: var(--text-sm);
+  color: var(--text-primary);
+  font-family: var(--font-data);
+  letter-spacing: 0.04em;
+}
+
+.driver-team {
+  font-size: 9px;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tower-gap {
+  width: 64px;
+  text-align: right;
+  font-size: var(--text-xs);
+  font-family: var(--font-data);
+  color: var(--text-secondary);
+  flex-shrink: 0;
+}
+
+.tower-gap--leader {
+  color: var(--accent);
+  font-weight: 600;
+  font-size: 9px;
+  letter-spacing: 0.05em;
+}

@@ -1,0 +1,24 @@
+.track-map-container {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--bg-surface);
+}
+
+.track-map-canvas {
+  width: 100%;
+  height: 100%;
+  display: block; /* prevents inline baseline gap */
+}
+
+.track-map-placeholder {
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  width: 100%;
+}
