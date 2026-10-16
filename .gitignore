@@ -21,8 +21,8 @@ f1_cache/
 
 # ===== Node / Frontend =====
 node_modules/
-frontend/dist/
-frontend/build/
+apps/web/dist/
+apps/web/build/
 .npm
 *.tsbuildinfo
 

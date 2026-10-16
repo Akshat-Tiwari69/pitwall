@@ -1,29 +1,51 @@
 # F1 Intelligence System
 
-An AI-powered Formula One race engineering intelligence platform that transforms raw telemetry into cinematic, interactive, and deeply intelligent race analysis.
+An AI-powered Formula One race engineering platform that turns raw FastF1 telemetry into interactive race analysis.
 
-## Project Structure
+## Repository layout
 
-This project is structured as a monorepo containing:
-- `backend/`: FastAPI + Python service for fetching and analyzing FastF1 data
-- `frontend/`: React + Vite + TypeScript application for visualization and interactions
+```
+apps/
+  api/        FastAPI service — loads FastF1 sessions and serves timing, telemetry, weather, race control
+  web/        React + Vite + TypeScript dashboard (ECharts, Three.js)
+docs/
+  VISION.md   Product vision
+  ROADMAP.md  Phased development plan
+  design/     Reference UI, icons and screenshots
+Makefile      Dev shortcuts (Windows)
+```
 
-## Quick Start
+## Getting started
 
-See the `Makefile` for available commands to start the development servers.
+Requires Python 3.11+ and Node 20+.
 
-### Backend Setup
-1. `cd backend`
-2. `python -m venv .venv`
-3. Activate virtual environment
-4. `pip install -r requirements.txt`
-5. `uvicorn app.main:app --reload`
+### API (`apps/api`)
 
-### Frontend Setup
-1. `cd frontend`
-2. `npm install`
-3. `npm run dev`
+```bash
+cd apps/api
+python -m venv .venv
+.venv/Scripts/python -m pip install -r requirements.txt
+.venv/Scripts/python -m uvicorn app.main:app --reload --port 8000
+```
 
-## Architecture
+Interactive docs at http://localhost:8000/docs. The first request for a session downloads it into `app/f1_cache/` (gitignored); later requests are served from disk.
 
-This platform heavily relies on the FastF1 library for telemetry and session data, and implements advanced visualization techniques using Apache ECharts and custom Canvas rendering.
+### Web (`apps/web`)
+
+```bash
+cd apps/web
+npm install
+npm run dev
+```
+
+Opens on http://localhost:5173 and talks to the API on port 8000.
+
+### Make targets
+
+| Target      | What it does                         |
+|-------------|--------------------------------------|
+| `make dev`  | Start API and web in separate windows |
+| `make api`  | Start the API only                    |
+| `make web`  | Start the web app only                |
+| `make test` | Run API tests                         |
+| `make lint` | Ruff (API) + ESLint (web)             |

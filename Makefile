@@ -1,16 +1,21 @@
-.PHONY: dev backend frontend test
+.PHONY: dev api web test lint
 
-# Run both frontend and backend development servers
+API_PY = .venv\Scripts\python
+
+# Run API and web dev servers in separate windows
 dev:
-	@echo "Starting backend and frontend..."
-	start cmd /c "cd backend && .\.venv\Scripts\Activate.ps1 && uvicorn app.main:app --reload --port 8000"
-	start cmd /c "cd frontend && npm run dev"
+	start cmd /k "cd apps\api && $(API_PY) -m uvicorn app.main:app --reload --port 8000"
+	start cmd /k "cd apps\web && npm run dev"
 
-backend:
-	cd backend && .\.venv\Scripts\Activate.ps1 && uvicorn app.main:app --reload --port 8000
+api:
+	cd apps\api && $(API_PY) -m uvicorn app.main:app --reload --port 8000
 
-frontend:
-	cd frontend && npm run dev
+web:
+	cd apps\web && npm run dev
 
-test-backend:
-	cd backend && .\.venv\Scripts\Activate.ps1 && pytest
+test:
+	cd apps\api && $(API_PY) -m pytest
+
+lint:
+	cd apps\api && $(API_PY) -m ruff check app tests
+	cd apps\web && npm run lint
