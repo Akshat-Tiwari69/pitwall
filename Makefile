@@ -17,5 +17,5 @@ test:
 	cd apps\api && $(API_PY) -m pytest
 
 lint:
-	cd apps\api && $(API_PY) -m ruff check app tests
+	cd apps\api && $(API_PY) -m ruff check app tests scripts
 	cd apps\web && npm run lint

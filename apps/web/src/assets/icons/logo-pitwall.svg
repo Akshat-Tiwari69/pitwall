@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none">
+  <title>Pitwall</title>
+  <rect width="32" height="32" rx="7" fill="#e10600"/>
+  <!-- Slanted "P" standing on the pit wall line -->
+  <path d="M12.5 22.5 15 8.5h5.2a4.6 4.6 0 0 1-.8 9.2h-5.6" stroke="#fff" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M8 24.5h16" stroke="#fff" stroke-width="2.2" stroke-linecap="round" opacity=".55"/>
+</svg>

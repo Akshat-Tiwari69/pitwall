@@ -25,7 +25,7 @@ jobs:
           key: fastf1-${{ hashFiles('apps/api/tests/**') }}
           restore-keys: fastf1-
       - run: pip install -r requirements.txt
-      - run: ruff check app tests
+      - run: ruff check app tests scripts
       # F1 live-timing servers reject GitHub runners, so full-session tests only run locally.
       - run: pytest -q -m "not livedata"
 

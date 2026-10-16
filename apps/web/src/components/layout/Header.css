@@ -15,18 +15,28 @@
   gap: var(--space-3);
 }
 
-.logo-f1-img {
-  height: 18px;
-  width: auto;
+.logo-mark {
+  height: 24px;
+  width: 24px;
   display: block;
   flex-shrink: 0;
 }
 
 .logo-text {
   font-size: var(--text-base);
-  font-weight: 500;
-  letter-spacing: 0.02em;
+  font-weight: 800;
+  font-style: italic;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
   color: var(--text-primary);
+}
+
+.demo-chip {
+  font-size: var(--text-xs);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-full);
+  padding: 1px var(--space-2);
 }
 
 .header-avatar {

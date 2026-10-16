@@ -2,6 +2,8 @@
 
 **Race engineering intelligence for Formula 1.** Pitwall turns raw FastF1 telemetry into interactive race analysis, and explains where the time was won or lost instead of only charting it.
 
+**Live demo:** https://akshat-tiwari69.github.io/pitwall/ (a static snapshot of four cached sessions, fastest-lap telemetry only).
+
 > Unofficial fan project. Not affiliated with Formula 1, the FIA or any team. F1 and Formula 1 are trademarks of Formula One Licensing B.V.
 
 ## Repository layout
@@ -51,3 +53,13 @@ Opens on http://localhost:5173 and talks to the API on port 8000.
 | `make web`  | Start the web app only                |
 | `make test` | Run API tests                         |
 | `make lint` | Ruff (API) + ESLint (web)             |
+
+## Publishing the online demo
+
+The demo on GitHub Pages has no backend. F1's live-timing servers reject cloud IPs, so it's a static snapshot of sessions already in your local FastF1 cache:
+
+```bash
+bash scripts/publish-demo.sh
+```
+
+It builds the web app in static mode, exports the sessions listed in `apps/api/scripts/export_demo.py` to JSON, and force-pushes the result to the `gh-pages` branch.

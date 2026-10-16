@@ -4,11 +4,6 @@ import { f1Service } from '../../services/api';
 import { useSessionStore } from '../../stores/sessionStore';
 import './SessionSelector.css';
 
-// FastF1 timing data starts in 2018; newest season first.
-const FIRST_YEAR = 2018;
-const CURRENT_YEAR = new Date().getFullYear();
-const AVAILABLE_YEARS = Array.from({ length: CURRENT_YEAR - FIRST_YEAR + 1 }, (_, i) => CURRENT_YEAR - i);
-
 // Backend dates look like "2024-03-02 18:00:00+03:00"; the 'T' makes them ISO for every browser.
 const isFuture = (date: string | undefined) => !!date && new Date(date.replace(' ', 'T')) > new Date();
 const latestPast = <T extends { date: string }>(sessions: T[]) =>
@@ -25,6 +20,9 @@ export function SessionSelector() {
   } = useSessionStore();
 
   const hasAutoSelected = useRef(false);
+
+  // Newest first: 2018..now locally, or just the exported seasons in the online demo.
+  const { data: years = [selectedYear] } = useQuery({ queryKey: ['years'], queryFn: f1Service.getYears });
 
   const { data: seasons, isLoading, error } = useQuery({
     queryKey: ['seasons', selectedYear],
@@ -77,7 +75,7 @@ export function SessionSelector() {
           onChange={(e) => setYear(parseInt(e.target.value))}
           className="selector-select"
         >
-          {AVAILABLE_YEARS.map(y => (
+          {years.map(y => (
             <option key={y} value={y}>{y}</option>
           ))}
         </select>

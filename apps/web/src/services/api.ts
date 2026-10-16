@@ -1,11 +1,15 @@
 import axios from 'axios';
 import type { Season, SessionResults, LapData, TelemetryDataset, MultiDriverTelemetry, WeatherData, RaceControlMessage, CircuitInfo, TrackPoint } from '../types/f1';
 
+// The online demo (GitHub Pages) has no API: it reads static JSON exported from cached
+// sessions by apps/api/scripts/export_demo.py. See scripts/publish-demo.sh.
+export const IS_DEMO = import.meta.env.VITE_STATIC_DATA === 'true';
+
 const API_ORIGIN = import.meta.env.VITE_API_URL ?? 'http://localhost:8000';
-const API_BASE_URL = `${API_ORIGIN}/api/v1`;
+const FIRST_YEAR = 2018; // FastF1 timing data starts in 2018
 
 export const api = axios.create({
-  baseURL: API_BASE_URL,
+  baseURL: IS_DEMO ? `${import.meta.env.BASE_URL}data` : `${API_ORIGIN}/api/v1`,
   timeout: 60000,
   headers: {
     'Content-Type': 'application/json',
@@ -41,59 +45,74 @@ api.interceptors.response.use(
   // Surface the API's own message ("No event 'X' in 2024") instead of axios' generic one.
   (error) => {
     const detail = error.response?.data?.detail;
-    if (typeof detail === 'string') error.message = detail;
+    if (IS_DEMO && error.response?.status === 404) {
+      error.message = 'Not included in the online demo. Run Pitwall locally for every session.';
+    } else if (typeof detail === 'string') error.message = detail;
     else if (!error.response) error.message = `Can't reach the API at ${API_ORIGIN}. Is it running?`;
     return Promise.reject(error);
   }
 );
 
+// Demo files are keyed by an event-name slug; must match slug() in export_demo.py.
+const slug = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+
+const sessionPath = (year: number, event: string, sessionType: string) =>
+  `/sessions/${year}/${IS_DEMO ? slug(event) : event}/${sessionType}`;
+
+async function get<T>(path: string): Promise<T> {
+  const response = await api.get(IS_DEMO ? `${path}.json` : path);
+  return response.data;
+}
+
 export const f1Service = {
+  getYears: async (): Promise<number[]> => {
+    if (IS_DEMO) return get<number[]>('/years');
+    const current = new Date().getFullYear();
+    return Array.from({ length: current - FIRST_YEAR + 1 }, (_, i) => current - i);
+  },
+
   getSeasons: async (year: number = 2024): Promise<Season[]> => {
+    if (IS_DEMO) return get<Season[]>(`/seasons/${year}`);
     const response = await api.get('/seasons', { params: { year } });
     return response.data;
   },
 
-  getResults: async (year: number, event: string, sessionType: string): Promise<SessionResults> => {
-    const response = await api.get(`/sessions/${year}/${event}/${sessionType}/results`);
-    return response.data;
-  },
+  getResults: (year: number, event: string, sessionType: string) =>
+    get<SessionResults>(`${sessionPath(year, event, sessionType)}/results`),
 
-  getLaps: async (year: number, event: string, sessionType: string): Promise<LapData[]> => {
-    const response = await api.get(`/sessions/${year}/${event}/${sessionType}/laps`);
-    return response.data;
-  },
+  getLaps: (year: number, event: string, sessionType: string) =>
+    get<LapData[]>(`${sessionPath(year, event, sessionType)}/laps`),
 
   // Pass lapNumber=0 to get the driver's fastest lap
-  getTelemetry: async (year: number, event: string, sessionType: string, driver: string, lapNumber: number): Promise<TelemetryDataset> => {
-    const response = await api.get(`/sessions/${year}/${event}/${sessionType}/telemetry/${driver}/${lapNumber}`);
-    return response.data;
-  },
+  getTelemetry: (year: number, event: string, sessionType: string, driver: string, lapNumber: number) =>
+    get<TelemetryDataset>(`${sessionPath(year, event, sessionType)}/telemetry/${driver}/${lapNumber}`),
 
   // Multi-driver compare — single backend request. lap=0 means each driver's fastest.
   getCompareTelemetry: async (year: number, event: string, sessionType: string, drivers: string[], lap: number): Promise<MultiDriverTelemetry> => {
-    const response = await api.get(`/sessions/${year}/${event}/${sessionType}/telemetry/compare`, {
+    if (IS_DEMO) {
+      // ponytail: demo ships fastest laps only (~80 kB per driver); every lap would be ~60 MB a race.
+      if (lap !== 0) throw new Error("The online demo only has each driver's fastest lap. Run Pitwall locally for every lap.");
+      const base = sessionPath(year, event, sessionType);
+      const found = await Promise.all(
+        drivers.map((d) => get<TelemetryDataset>(`${base}/telemetry/${d}`).then((t) => [d, t] as const, () => null))
+      );
+      return { drivers: Object.fromEntries(found.filter((f) => f !== null)) };
+    }
+    const response = await api.get(`${sessionPath(year, event, sessionType)}/telemetry/compare`, {
       params: { drivers: drivers.join(','), lap },
     });
     return response.data;
   },
 
-  getWeather: async (year: number, event: string, sessionType: string): Promise<WeatherData[]> => {
-    const response = await api.get(`/sessions/${year}/${event}/${sessionType}/weather`);
-    return response.data;
-  },
+  getWeather: (year: number, event: string, sessionType: string) =>
+    get<WeatherData[]>(`${sessionPath(year, event, sessionType)}/weather`),
 
-  getRaceControl: async (year: number, event: string, sessionType: string): Promise<RaceControlMessage[]> => {
-    const response = await api.get(`/sessions/${year}/${event}/${sessionType}/race-control`);
-    return response.data;
-  },
+  getRaceControl: (year: number, event: string, sessionType: string) =>
+    get<RaceControlMessage[]>(`${sessionPath(year, event, sessionType)}/race-control`),
 
-  getCircuit: async (year: number, event: string, sessionType: string): Promise<CircuitInfo> => {
-    const response = await api.get(`/sessions/${year}/${event}/${sessionType}/circuit`);
-    return response.data;
-  },
+  getCircuit: (year: number, event: string, sessionType: string) =>
+    get<CircuitInfo>(`${sessionPath(year, event, sessionType)}/circuit`),
 
-  getTrackOutline: async (year: number, event: string, sessionType: string): Promise<TrackPoint[]> => {
-    const response = await api.get(`/sessions/${year}/${event}/${sessionType}/track-outline`);
-    return response.data;
-  },
+  getTrackOutline: (year: number, event: string, sessionType: string) =>
+    get<TrackPoint[]>(`${sessionPath(year, event, sessionType)}/track-outline`),
 };
