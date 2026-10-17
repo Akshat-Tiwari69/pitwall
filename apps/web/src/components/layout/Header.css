@@ -2,9 +2,10 @@
   height: 48px;
   background-color: var(--bg-surface);
   border-bottom: 1px solid var(--border-default);
-  display: flex;
+  /* Equal outer columns keep the session selector centred on the page */
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
   align-items: center;
-  justify-content: space-between;
   padding: 0 var(--space-4);
   z-index: var(--z-sticky);
 }
@@ -39,16 +40,3 @@
   padding: 1px var(--space-2);
 }
 
-.header-avatar {
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  background-color: var(--accent);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: var(--text-xs);
-  font-weight: 700;
-  color: #fff;
-  cursor: pointer;
-}

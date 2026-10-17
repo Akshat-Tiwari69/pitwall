@@ -1,7 +1,8 @@
 """Export API responses for a few sessions as static JSON for the online demo.
 
-The demo (GitHub Pages) can't run the API: F1's live-timing servers reject cloud IPs, so
-it serves a snapshot of sessions already in the local FastF1 cache instead. The web app
+The demo (GitHub Pages) has no API, so it serves a snapshot of sessions already in the
+local FastF1 cache. Cached sessions are also all FastF1 can load right now: F1's timing
+archive has required an F1 TV login since Oct 2026 (theOehrly/Fast-F1#978). The web app
 reads these files when built with VITE_STATIC_DATA=true (see apps/web/src/services/api.ts).
 
 Usage (from apps/api):  .venv/Scripts/python -m scripts.export_demo <output dir>
@@ -24,7 +25,7 @@ DEMO_SESSIONS = [
     (2024, "Saudi Arabian Grand Prix", "R"),
     (2025, "Australian Grand Prix", "R"),
 ]
-SESSION_FILES = ["results", "laps", "weather", "race-control", "track-outline"]
+SESSION_FILES = ["results", "laps", "weather", "race-control", "track-outline", "circuit"]
 
 client = TestClient(app)
 

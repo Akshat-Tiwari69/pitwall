@@ -13,7 +13,7 @@ client = TestClient(app)
 BASE = "/api/v1/sessions/2024/Bahrain/R"
 KEY = (2024, 1, "Race")  # (year, round, session name) — see f1_data._session_key
 
-# Needs full timing data from F1's live-timing servers, which block CI runners (see pyproject).
+# Needs full timing data, which only the local FastF1 cache has (CI can't download it).
 livedata = pytest.mark.livedata
 
 
@@ -76,3 +76,52 @@ def test_telemetry_upgrades_cached_session():
     assert has_telemetry
     client.get(BASE + "/weather")
     assert f1_data._session_cache[KEY][0] is session
+
+
+@livedata
+def test_circuit_corners_have_track_distance():
+    corners = client.get(BASE + "/circuit").json()["corners"]
+    assert len(corners) == 15
+    # FastF1 places Bahrain T1 ~712 m into the lap; the telemetry charts mark it there.
+    assert 650 < corners[0]["distance"] < 780
+    assert [c["distance"] for c in corners] == sorted(c["distance"] for c in corners)
+
+
+def test_lockout_message_explains_missing_timing_data(monkeypatch):
+    from fastf1.exceptions import DataNotLoadedError
+
+    def no_data(*_):
+        raise DataNotLoadedError("not loaded")
+
+    monkeypatch.setattr(f1_data.F1DataService, "get_laps", no_data)
+    r = client.get(BASE + "/laps")
+    assert r.status_code == 404
+    assert "F1 TV login" in r.json()["detail"]
+
+
+@livedata
+def test_precompute_warms_cached_event(capsys):
+    from app.precompute import main
+
+    assert main(["2024", "--event", "Bahrain Grand Prix", "--sessions", "R"]) == 0
+    assert "ok    2024 Bahrain Grand Prix R" in capsys.readouterr().out
+
+
+def test_slow_session_does_not_block_other_sessions(monkeypatch):
+    import threading
+    import time
+    from types import SimpleNamespace
+
+    def fake_session(rnd, delay):
+        event = {"RoundNumber": rnd}
+        ev = type("Ev", (), {"year": 1999, "__getitem__": lambda self, k: event[k]})()
+        return SimpleNamespace(event=ev, name="Race", load=lambda **_: time.sleep(delay))
+
+    sessions = {"slow": fake_session(1, 1.5), "fast": fake_session(2, 0)}
+    monkeypatch.setattr(f1_data, "_resolve", lambda year, event, stype: sessions[event])
+
+    threading.Thread(target=f1_data._get_session, args=(1999, "slow", "R")).start()
+    time.sleep(0.1)  # let the slow load take its lock first
+    start = time.perf_counter()
+    f1_data._get_session(1999, "fast", "R")
+    assert time.perf_counter() - start < 0.5  # was ~1.5 s with one global load lock

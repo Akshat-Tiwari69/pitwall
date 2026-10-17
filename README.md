@@ -54,9 +54,20 @@ Opens on http://localhost:5173 and talks to the API on port 8000.
 | `make test` | Run API tests                         |
 | `make lint` | Ruff (API) + ESLint (web)             |
 
+## Warming the cache
+
+A session's first load downloads and processes a lot of data. Warm a season ahead of time so the API only reads from disk:
+
+```bash
+cd apps/api
+.venv/Scripts/python -m app.precompute 2024 --sessions R,Q
+```
+
 ## Publishing the online demo
 
-The demo on GitHub Pages has no backend. F1's live-timing servers reject cloud IPs, so it's a static snapshot of sessions already in your local FastF1 cache:
+The demo on GitHub Pages has no backend: it's a static snapshot of sessions already in your local FastF1 cache. That's also the only data available at the moment, since F1's timing archive has required an F1 TV login since Oct 2026 ([Fast-F1#978](https://github.com/theOehrly/Fast-F1/issues/978)).
+
+To publish it:
 
 ```bash
 bash scripts/publish-demo.sh

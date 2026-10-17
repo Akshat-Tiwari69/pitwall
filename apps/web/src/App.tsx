@@ -13,14 +13,6 @@ const TrackMap = lazy(() =>
 );
 import './styles/globals.css';
 
-function ComingSoon({ title }: { title: string }) {
-  return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: 'var(--text-muted)', fontSize: '0.875rem' }}>
-      {title} — coming soon
-    </div>
-  );
-}
-
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -39,8 +31,6 @@ function App() {
             <Route index element={<DashboardView />} />
             <Route path="telemetry" element={<TelemetryCharts />} />
             <Route path="track" element={<TrackMap />} />
-            <Route path="strategy" element={<ComingSoon title="Strategy" />} />
-            <Route path="engineer" element={<ComingSoon title="AI Engineer" />} />
           </Route>
         </Routes>
       </BrowserRouter>

@@ -241,7 +241,7 @@ export function TeamDashboard() {
           <TelemetryMiniGrid />
         </Panel>
 
-        <Panel title="LAP COMPARISON" className="td-area-laps">
+        <Panel title="LAP TIMES" className="td-area-laps">
           <LapTable />
         </Panel>
 

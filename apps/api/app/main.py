@@ -11,7 +11,7 @@ from fastf1.exceptions import DataNotLoadedError
 
 from app.api.router import router
 from app.core.config import get_settings
-from app.services.f1_data import NotFoundError
+from app.services.f1_data import NO_TIMING_DATA, NotFoundError
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s: %(message)s")
 log = logging.getLogger("app")
@@ -32,7 +32,7 @@ async def not_found(_: Request, exc: NotFoundError):
 
 @app.exception_handler(DataNotLoadedError)
 async def data_not_available(_: Request, exc: DataNotLoadedError):
-    return JSONResponse(status_code=404, content={"detail": "No data available for this session"})
+    return JSONResponse(status_code=404, content={"detail": NO_TIMING_DATA})
 
 
 # Registered before CORS so it runs inside it: 500s still carry CORS headers and the browser

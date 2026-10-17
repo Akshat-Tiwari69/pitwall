@@ -50,12 +50,13 @@ export function SessionSelector() {
     if (season.events.length === 0) return;
 
     hasAutoSelected.current = true;
+    if (season.events.some((e) => e.name === selectedEvent)) return; // keep a shared link's event
     const firstEvent = season.events[0];
     setEvent(firstEvent.name);
 
     const session = latestPast(firstEvent.sessions);
     if (session) setSessionType(session.type);
-  }, [seasons, setEvent, setSessionType]);
+  }, [seasons, selectedEvent, setEvent, setSessionType]);
 
   // When event changes and no session is selected, auto-select its latest completed session
   useEffect(() => {

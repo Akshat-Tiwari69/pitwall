@@ -1,6 +1,7 @@
 import { lazy, Suspense } from 'react';
 import { TimingTower } from './TimingTower';
 import { LapTable } from './LapTable';
+import { SessionSummary } from './SessionSummary';
 import { useSessionStore } from '../../stores/sessionStore';
 import { Skeleton } from '../../components/PanelState';
 import './DashboardView.css';
@@ -39,6 +40,7 @@ export function DashboardView() {
       </div>
 
       <div className="dv-right">
+        <SessionSummary />
         <div className="dv-telemetry">
           <PanelHeader title="TELEMETRY ANALYSIS" />
           <Suspense fallback={<Skeleton rows={10} />}>
@@ -52,7 +54,7 @@ export function DashboardView() {
             <LapTable />
           </div>
           <div className="dv-track">
-            <PanelHeader title="TRACK POSITIONS" />
+            <PanelHeader title="TRACK" />
             <Suspense fallback={<Skeleton rows={8} />}>
               <TrackMap />
             </Suspense>

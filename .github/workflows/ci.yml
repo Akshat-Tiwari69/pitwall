@@ -26,7 +26,8 @@ jobs:
           restore-keys: fastf1-
       - run: pip install -r requirements.txt
       - run: ruff check app tests scripts
-      # F1 live-timing servers reject GitHub runners, so full-session tests only run locally.
+      # F1's timing archive needs an F1 TV login since Oct 2026 (Fast-F1#978), so tests that
+      # need full session data only run locally, against the cached sessions.
       - run: pytest -q -m "not livedata"
 
   web:

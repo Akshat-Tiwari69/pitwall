@@ -11,6 +11,7 @@ from typing import Dict, List, Optional
 
 import fastf1
 import pandas as pd
+from fastf1.exceptions import DataNotLoadedError
 
 from app.core.config import get_settings
 from app.models.f1 import (
@@ -39,6 +40,15 @@ fastf1.Cache.enable_cache(settings.fastf1_cache_dir)
 pd.options.mode.chained_assignment = None
 
 
+# Since ~15 Oct 2026 F1's timing archive answers 401 without an F1 TV login, so FastF1 can
+# only serve sessions already in the local cache (theOehrly/Fast-F1#978). Results still
+# load from Ergast, which is why a session can have results but no laps.
+NO_TIMING_DATA = (
+    "No timing data for this session. F1's timing archive has required an F1 TV login since "
+    "Oct 2026, so only sessions already in Pitwall's local cache can load."
+)
+
+
 class NotFoundError(Exception):
     """The requested season, event, session, driver or lap doesn't exist (→ HTTP 404)."""
 
@@ -47,7 +57,7 @@ class NotFoundError(Exception):
 # (year, round, session name) -> (session, has_telemetry)
 _session_cache: OrderedDict = OrderedDict()
 _session_lock = Lock()
-_load_lock = Lock()
+_load_locks: dict = {}  # session key -> Lock; one load at a time per session
 _SESSION_CACHE_MAX = 5
 
 # Module-level telemetry cache — keyed by (session key, driver(s), lap).
@@ -120,9 +130,12 @@ def _get_session(year: int, event: str, session_type: str, load_telemetry: bool 
     if (cached := _cached_session(key, load_telemetry)) is not None:
         return cached
 
-    # ponytail: global load lock, so the dashboard's parallel requests don't each load the
-    # same session. Different sessions load one at a time; go per-key locks if that bites.
-    with _load_lock:
+    # Per-session lock: the dashboard's parallel requests share one load of the same session,
+    # while a slow or failing session (e.g. retrying F1's locked archive) doesn't block others.
+    # ponytail: locks are never removed; that's one tiny Lock per session ever requested.
+    with _session_lock:
+        load_lock = _load_locks.setdefault(key, Lock())
+    with load_lock:
         if (cached := _cached_session(key, load_telemetry)) is not None:
             return cached
 
@@ -509,7 +522,8 @@ class F1DataService:
         return SessionResults(drivers=drivers)
 
     def get_circuit_info(self, year: int, event: str, session_type: str) -> CircuitInfo:
-        session = _get_session(year, event, session_type, load_telemetry=False)
+        # Telemetry needed: FastF1 places corner distances on the fastest lap's position data.
+        session = _get_session(year, event, session_type, load_telemetry=True)
         info = session.get_circuit_info()
 
         corners = []
@@ -519,7 +533,8 @@ class F1DataService:
                 x=self._safe_float(row['X']) or 0.0,
                 y=self._safe_float(row['Y']) or 0.0,
                 angle=self._safe_float(row['Angle']) or 0.0,
-                letter=self._safe_str(row['Letter']) if not pd.isna(row['Letter']) else None,
+                letter=self._safe_str(row['Letter']) or None,
+                distance=self._safe_float(row.get('Distance')),
             ))
 
         return CircuitInfo(corners=corners, rotation=info.rotation)
@@ -531,6 +546,8 @@ class F1DataService:
         try:
             fastest_lap = session.laps.pick_fastest()
             tel = fastest_lap.get_telemetry()
+        except DataNotLoadedError:
+            raise  # no timing data at all: let app.main explain the archive lockout
         except Exception as e:
             log.warning("No track outline for %s %s %s: %s", year, event, session_type, e)
             return []

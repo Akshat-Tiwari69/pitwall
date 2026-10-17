@@ -7,8 +7,8 @@
 
 /* ── Left: Timing Tower ── */
 .dv-tower {
-  width: 220px;
-  min-width: 220px;
+  width: 290px;
+  min-width: 290px;
   display: flex;
   flex-direction: column;
   border-right: 1px solid var(--border-default);

@@ -18,9 +18,6 @@ export function Header() {
       <div className="header-center">
         <SessionSelector />
       </div>
-      <div className="header-right">
-        <div className="header-avatar">A</div>
-      </div>
     </header>
   );
 }

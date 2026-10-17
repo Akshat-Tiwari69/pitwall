@@ -39,20 +39,7 @@
 .text-muted { color: var(--text-muted); }
 .text-personal-best { color: var(--personal-best); }
 
-.lap-num-cell { width: 36px; vertical-align: top; padding-top: 6px; }
-
-.lap-num-badge {
-  display: inline-block;
-  font-family: var(--font-data);
-  font-size: 9px;
-  font-weight: 700;
-  color: var(--text-muted);
-  background-color: var(--bg-elevated);
-  border: 1px solid var(--border-default);
-  border-radius: 3px;
-  padding: 1px 4px;
-  white-space: nowrap;
-}
+.lap-num-cell { width: 70px; color: var(--text-secondary); }
 
 .driver-cell { font-size: var(--text-xs); letter-spacing: 0.04em; }
 
@@ -60,30 +47,6 @@
   width: 28px;
   padding-left: var(--space-2);
   padding-right: var(--space-2);
-}
-
-.tyre-img {
-  width: 20px;
-  height: 20px;
-  display: block;
-  object-fit: contain;
-}
-
-.tyre-unknown {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  background: #333;
-  color: #aaa;
-  font-size: 9px;
-  font-weight: 700;
-}
-
-tr.lap-group-first td {
-  border-top: 1px solid var(--border-default);
 }
 
 tr.lap-personal-best td {
@@ -96,3 +59,61 @@ tr.lap-personal-best td {
   color: var(--text-muted);
   text-align: center;
 }
+
+tr.lap-fastest td {
+  background-color: rgba(168, 85, 247, 0.08);
+}
+
+.text-fastest { color: var(--fastest-lap); }
+
+.lap-table th.sortable { cursor: pointer; user-select: none; }
+.lap-table th.sortable:hover { color: var(--text-primary); }
+
+.pit-tag {
+  margin-left: 5px;
+  padding: 0 3px;
+  border: 1px solid var(--border-default);
+  border-radius: 2px;
+  font-size: 8px;
+  font-weight: 700;
+  color: var(--text-secondary);
+}
+
+.lap-table-toolbar {
+  position: sticky;
+  left: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-1) var(--space-3);
+  background-color: var(--bg-surface);
+  border-bottom: 1px solid var(--border-default);
+}
+
+.lap-filter {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-size: var(--text-xs);
+  padding: 2px 6px;
+}
+
+.lap-legend {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10px;
+  color: var(--text-muted);
+}
+
+.swatch {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  margin-left: 6px;
+}
+.swatch--fastest { background: var(--fastest-lap); }
+.swatch--pb { background: var(--personal-best); }

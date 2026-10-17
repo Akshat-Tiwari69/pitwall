@@ -140,6 +140,7 @@ class Corner(BaseModel):
     y: float
     angle: float
     letter: Optional[str] = None
+    distance: Optional[float] = None  # metres along the fastest lap; for chart corner markers
 
 
 class CircuitInfo(BaseModel):

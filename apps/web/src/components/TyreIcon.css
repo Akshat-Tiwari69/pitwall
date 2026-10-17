@@ -1,0 +1,15 @@
+.tyre-img {
+  display: block;
+  object-fit: contain;
+}
+
+.tyre-unknown {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #333;
+  color: #aaa;
+  font-size: 9px;
+  font-weight: 700;
+}

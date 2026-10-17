@@ -1,108 +1,99 @@
-import { useMemo } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { f1Service } from '../../services/api';
-import { useSessionStore } from '../../stores/sessionStore';
+import { useMemo, useState } from 'react';
+import { useLaps } from '../../hooks/useSessionQueries';
 import { ErrorState, Skeleton } from '../../components/PanelState';
+import { TyreIcon } from '../../components/TyreIcon';
+import { formatTime } from '../../utils/format';
 import type { LapData } from '../../types/f1';
-import tireSoft         from '../../assets/icons/tire-soft.svg';
-import tireMedium       from '../../assets/icons/tire-medium.svg';
-import tireHard         from '../../assets/icons/tire-hard.svg';
-import tireIntermediate from '../../assets/icons/tire-intermediate.svg';
-import tireWet          from '../../assets/icons/tire-wet.svg';
 import './LapTable.css';
 
-const TYRE_ICONS: Record<string, string> = {
-  soft:         tireSoft,
-  medium:       tireMedium,
-  hard:         tireHard,
-  intermediate: tireIntermediate,
-  wet:          tireWet,
-};
+type SortKey = 'lapNumber' | 'driver' | 'sector1Time' | 'sector2Time' | 'sector3Time' | 'lapTime';
 
-function formatTime(secs: number | null): string {
-  if (secs == null) return '—';
-  if (secs >= 60) {
-    const m = Math.floor(secs / 60);
-    const s = (secs % 60).toFixed(3).padStart(6, '0');
-    return `${m}:${s}`;
-  }
-  return secs.toFixed(3);
-}
+const COLUMNS: { key: SortKey | null; label: string }[] = [
+  { key: 'lapNumber', label: 'LAP' },
+  { key: 'driver', label: 'DRIVER' },
+  { key: null, label: 'TYRE' },
+  { key: 'sector1Time', label: 'S1' },
+  { key: 'sector2Time', label: 'S2' },
+  { key: 'sector3Time', label: 'S3' },
+  { key: 'lapTime', label: 'LAP TIME' },
+];
 
-function TyreIcon({ compound }: { compound: string }) {
-  const src = TYRE_ICONS[compound.toLowerCase()];
-  if (!src) return <span className="tyre-unknown">{compound.charAt(0).toUpperCase()}</span>;
-  return <img src={src} alt={compound} className="tyre-img" />;
+// Missing values (e.g. no S1 on lap 1) always sort last, whichever the direction.
+function compare(a: LapData, b: LapData, key: SortKey, dir: 1 | -1): number {
+  const x = a[key], y = b[key];
+  if (x == null || y == null) return x == null ? (y == null ? 0 : 1) : -1;
+  return (typeof x === 'string' ? x.localeCompare(y as string) : (x as number) - (y as number)) * dir;
 }
 
 export function LapTable() {
-  const { selectedYear, selectedEvent, selectedSessionType } = useSessionStore();
+  const { data: laps, isLoading, error } = useLaps();
+  const [sort, setSort] = useState<{ key: SortKey; dir: 1 | -1 }>({ key: 'lapNumber', dir: -1 });
+  const [driver, setDriver] = useState('');
 
-  const { data: laps, isLoading, error } = useQuery({
-    queryKey: ['laps', selectedYear, selectedEvent, selectedSessionType],
-    queryFn: () => f1Service.getLaps(selectedYear, selectedEvent!, selectedSessionType!),
-    enabled: !!selectedEvent && !!selectedSessionType,
-  });
+  const timed = useMemo(() => (laps ?? []).filter((l) => l.lapTime != null), [laps]);
+  const drivers = useMemo(() => [...new Set(timed.map((l) => l.driver))].sort(), [timed]);
+  const fastestTime = useMemo(() => Math.min(...timed.map((l) => l.lapTime!)), [timed]);
 
-  // Group by lap number, sort each group by lap time, show most recent laps first
-  const lapGroups = useMemo(() => {
-    if (!laps) return [];
-    const groups = new Map<number, LapData[]>();
-    for (const lap of laps) {
-      if (lap.lapTime == null) continue; // skip incomplete laps
-      if (!groups.has(lap.lapNumber)) groups.set(lap.lapNumber, []);
-      groups.get(lap.lapNumber)!.push(lap);
-    }
-    for (const [, group] of groups) {
-      group.sort((a, b) => (a.lapTime ?? Infinity) - (b.lapTime ?? Infinity));
-    }
-    return Array.from(groups.entries())
-      .sort((a, b) => b[0] - a[0]) // most recent lap first
-      .map(([lapNum, rows]) => ({ lapNum, rows }));
-  }, [laps]);
+  const rows = useMemo(() => {
+    const shown = driver ? timed.filter((l) => l.driver === driver) : timed;
+    // Tie-break on lap time so the default "latest lap first" view lists each lap fastest-first.
+    return [...shown].sort((a, b) => compare(a, b, sort.key, sort.dir) || compare(a, b, 'lapTime', 1));
+  }, [timed, driver, sort]);
 
   if (isLoading) return <Skeleton rows={8} />;
   if (error) return <ErrorState error={error} />;
   if (!laps) return <div className="lap-table-empty">Select a session to view lap data</div>;
-  if (lapGroups.length === 0) return <div className="lap-table-empty">No lap data available</div>;
+  if (timed.length === 0) return <div className="lap-table-empty">No lap data available</div>;
+
+  const toggleSort = (key: SortKey) =>
+    setSort((s) => ({ key, dir: s.key === key ? (s.dir === 1 ? -1 : 1) : key === 'lapNumber' ? -1 : 1 }));
 
   return (
     <div className="lap-table-container">
+      <div className="lap-table-toolbar">
+        <select className="lap-filter" value={driver} onChange={(e) => setDriver(e.target.value)} aria-label="Filter by driver">
+          <option value="">All drivers</option>
+          {drivers.map((d) => <option key={d} value={d}>{d}</option>)}
+        </select>
+        <span className="lap-legend"><i className="swatch swatch--fastest" />Fastest <i className="swatch swatch--pb" />Personal best</span>
+      </div>
       <table className="lap-table">
         <thead>
           <tr>
-            <th>LAP</th>
-            <th>DRIVER</th>
-            <th>CMP</th>
-            <th>S1 TIME</th>
-            <th>S2 TIME</th>
-            <th>S3 TIME</th>
-            <th>LAP TIME</th>
+            {COLUMNS.map(({ key, label }) => (
+              <th
+                key={label}
+                className={key ? 'sortable' : undefined}
+                onClick={key ? () => toggleSort(key) : undefined}
+                aria-sort={key && sort.key === key ? (sort.dir === 1 ? 'ascending' : 'descending') : undefined}
+              >
+                {label}{key && sort.key === key ? (sort.dir === 1 ? ' ▲' : ' ▼') : ''}
+              </th>
+            ))}
           </tr>
         </thead>
         <tbody>
-          {lapGroups.map(({ lapNum, rows }) =>
-            rows.map((lap, i) => (
-              <tr
-                key={`${lapNum}-${lap.driver}`}
-                className={`${i === 0 ? 'lap-group-first' : ''} ${lap.isPersonalBest ? 'lap-personal-best' : ''}`}
-              >
+          {rows.map((lap) => {
+            const isFastest = lap.lapTime === fastestTime;
+            const timeClass = isFastest ? 'text-fastest' : lap.isPersonalBest ? 'text-personal-best' : '';
+            return (
+              <tr key={`${lap.lapNumber}-${lap.driver}`} className={isFastest ? 'lap-fastest' : lap.isPersonalBest ? 'lap-personal-best' : ''}>
                 <td className="data-text lap-num-cell">
-                  {i === 0 ? <span className="lap-num-badge">L{lapNum}</span> : null}
+                  {lap.lapNumber}
+                  {lap.pitInTime != null && <span className="pit-tag" title="In-lap: pitted at the end of this lap">IN</span>}
+                  {lap.pitOutTime != null && <span className="pit-tag" title="Out-lap: left the pits on this lap">OUT</span>}
                 </td>
                 <td className="font-bold driver-cell">{lap.driver}</td>
-                <td className="tyre-cell">
+                <td className="tyre-cell" title={lap.compound ? `${lap.compound}, ${lap.tyreLife} laps old` : undefined}>
                   {lap.compound ? <TyreIcon compound={lap.compound} /> : <span className="text-muted">—</span>}
                 </td>
                 <td className="data-text">{formatTime(lap.sector1Time)}</td>
                 <td className="data-text">{formatTime(lap.sector2Time)}</td>
                 <td className="data-text">{formatTime(lap.sector3Time)}</td>
-                <td className={`data-text font-bold ${lap.isPersonalBest ? 'text-personal-best' : ''}`}>
-                  {formatTime(lap.lapTime)}
-                </td>
+                <td className={`data-text font-bold ${timeClass}`}>{formatTime(lap.lapTime)}</td>
               </tr>
-            ))
-          )}
+            );
+          })}
         </tbody>
       </table>
     </div>

@@ -118,6 +118,12 @@
 .telemetry-container {
   flex: 1;
   min-height: 0;
+  display: flex;
+}
+
+.telemetry-charts {
+  flex: 1;
+  min-width: 0;
   padding: var(--space-3);
 }
 

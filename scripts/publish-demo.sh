@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 # Build the static online demo and publish it to GitHub Pages (the gh-pages branch).
 #
-# Runs locally, not in CI: F1's live-timing servers reject cloud IPs, so the demo is a
-# snapshot of sessions in the local FastF1 cache (list in apps/api/scripts/export_demo.py).
+# Runs locally, not in CI: the demo is a snapshot of sessions in the local FastF1 cache
+# (list in apps/api/scripts/export_demo.py), and F1's timing archive needs an F1 TV login
+# since Oct 2026, so CI can't download them (theOehrly/Fast-F1#978).
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"

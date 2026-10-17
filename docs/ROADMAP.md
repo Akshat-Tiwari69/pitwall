@@ -22,7 +22,8 @@ Sizes: **S** ≈ a few evenings · **M** ≈ 1–2 weeks · **L** ≈ 3+ weeks (
 
 | | |
 |---|---|
-| **Now** | Phase 1: harden the API, remove the mock panels, finish the session explorer |
+| **Now** | Phase 1 is complete. Next: Phase 2, lap comparison, once the data question below is settled |
+| **Data** | ⏸ **Waiting on FastF1.** F1's timing archive has needed an F1 TV login since ~15 Oct 2026 ([Fast-F1#978](https://github.com/theOehrly/Fast-F1/issues/978)). Until FastF1 supports it, build against the 4 cached sessions. **Plan B:** [OpenF1](https://openf1.org) as a fallback source (2023 onward; 2026 telemetry verified on 2026-10-17). Switch if FastF1 is still locked out when Phase 2 starts. |
 | **Next** | Phase 2: lap comparison with auto-generated findings → **v0.1 public demo** |
 | **Then** | Phase 3: race story → Phase 4: AI race engineer → **v0.2** → Phase 5: replay → **v1.0** |
 | **Later** | Driver profiles & season view, live timing, strategy simulator |
@@ -60,7 +61,7 @@ No database, Redis or WebSocket until a feature actually needs one. Historical d
 - API smoke tests (`apps/api/tests`)
 
 ### 1.1 API hardening — S ✅
-*Shipped 2026-10-16. CI workflow is in `.github/workflows/ci.yml` and has its first real run once the repo is pushed. Also fixed: race gaps were negative (`+-5482s`), and lapped cars now show "+1 Lap".*
+*Shipped 2026-10-16. CI is green. Also fixed: race gaps were negative (`+-5482s`), and lapped cars now show "+1 Lap". Note: 2026 sessions are selectable, but since F1's archive lockout only their results load (see Data above).*
 - Typed errors: unknown event / driver / lap → 404; bad params → 422; never return raw exception text
 - Resolve the event name through the FastF1 schedule, so "bahrain", "Bahrain" and "Bahrain Grand Prix" share one cache entry
 - Season range from 2018 to the current year, derived from the date instead of hardcoded (2026 is currently unreachable)
@@ -71,21 +72,23 @@ No database, Redis or WebSocket until a feature actually needs one. Historical d
 **Done when:** CI is green; `GET …/2024/Atlantis/R/results` returns 404; 2026 sessions are selectable.
 
 ### 1.2 Honest UI — S ✅
-*Shipped 2026-10-16. Initial JS is 108 kB gzipped; ECharts and Three.js load as separate chunks.*
+*Shipped 2026-10-16, finished 2026-10-17. Initial JS is 108 kB gzipped; ECharts and Three.js load as separate chunks. Also removed: the fake account avatar, the Strategy/AI Engineer "coming soon" pages, and panel titles that promised more than they showed ("Track positions", "Lap comparison").*
 - Remove the Car Status gauges (FastF1 has no fuel, brake temp or ERS data) and hide the mock AI Engineer panel until Phase 4
 - Remove or label the 3D car dots (they're evenly spaced, not real positions) until replay exists
 - Skeleton loaders and real error states instead of blank panels
 - Lazy-load routes so Three.js and ECharts aren't in the first bundle
 
-**Done when:** `grep -ri demo apps/web/src` finds nothing; initial JS is under 250 kB gzipped (currently ~600 kB).
+**Done when:** no mock or placeholder data anywhere in the UI (the only "demo" in the code is the GitHub Pages online-demo mode); initial JS is under 250 kB gzipped (was ~600 kB).
 
-### 1.3 URL state — S ⬜
+### 1.3 URL state — S ✅
+*Shipped 2026-10-17. The selection lives in query parameters (`/telemetry?year=2024&event=Bahrain+Grand+Prix&session=R&drivers=VER,LEC&lap=12`, plus `focus=` for the driver view), so links also work on the GitHub Pages demo. Verified: a pasted link restores page, session, drivers and lap; clicks update the URL; the sidebar keeps the selection between pages.*
 - Session, selected drivers and lap live in the URL, e.g. `/2024/bahrain/R/telemetry?d=VER,LEC&lap=fastest`
 - Reloading restores the view, and links are shareable. This covers most of the old "community sharing" idea for free.
 
 **Done when:** copying the URL into a fresh tab reproduces the exact view.
 
-### 1.4 Session explorer completion — M 🟡
+### 1.4 Session explorer completion — M ✅
+*Shipped 2026-10-17. Verified against [OpenF1](https://openf1.org) as an independent source for Bahrain 2024 R: fastest lap (VER 1:32.608, lap 39), 0 SC / 0 VSC, and all 20 drivers' pit counts match.*
 - Timing tower: current tyre and its age, pit stop count, fastest lap in purple
 - Lap table: sortable and filterable, personal bests in green, overall fastest in purple, pit in/out laps marked
 - Session summary card: winner/pole, fastest lap, laps completed, SC/VSC count, weather range
@@ -93,14 +96,16 @@ No database, Redis or WebSocket until a feature actually needs one. Historical d
 
 **Done when:** for Bahrain 2024 R, the fastest lap, pit counts and SC periods shown match the official results.
 
-### 1.5 Analysis track map — M ⬜
+### 1.5 Analysis track map — M ✅
+*Shipped 2026-10-17, on the Telemetry page next to the charts. The speed heatmap uses a single-hue blue ramp (dark = slow, light = fast) rather than blue→red, which keeps it colour-blind safe. Verified: hovering the T1 label snaps to 712 m (FastF1's T1 distance is 712.3 m), and the chart crosshair lands on the T1 braking minimum (73 km/h, 3rd gear).*
 - A 2D SVG map for analysis: crisp labels and hover. Three.js stays for the showcase and replay view.
 - Circuit rotation, corner numbers, sector colours, speed heatmap for the selected lap
 - Shared distance cursor: hovering the map moves the telemetry crosshair, and the reverse
 
 **Done when:** hovering Turn 1 on the map highlights the braking zone in the speed trace.
 
-### 1.6 Cold-load experience — S ⬜
+### 1.6 Cold-load experience — S ✅
+*Shipped 2026-10-17. Measured on a fresh API process with a warm disk cache: the dashboard's requests take under 1 s in total. ⚠ The **first** telemetry view of a session takes ~3.3 s (car and position data processed once), then ~0.01 s. Panels loading for more than 4 s now explain why. Under the archive lockout, the command can only re-warm already-cached sessions; others are reported and skipped.*
 - `python -m app.precompute 2024` warms the FastF1 cache for a season
 - The first-load state says what's happening: a cold race download takes tens of seconds
 
@@ -131,7 +136,7 @@ No database, Redis or WebSocket until a feature actually needs one. Historical d
 
 ### 2.4 Release v0.1 — S ⬜
 - Deploy: API in a Docker container with a persistent volume for the FastF1 cache; web as a static site
-- The cache must be warmed locally and shipped, since cloud hosts can't reach F1's live-timing servers (see Data caveats). Check the target host can serve a cold session before committing to it.
+- The cache must be warmed locally and shipped, since nothing can download new sessions while F1's archive needs a login (see Data caveats).
 - README with screenshots and a demo link; 3–5 preloaded showcase sessions
 
 **Done when:** a stranger can open the public URL and compare two laps without instructions.
@@ -249,7 +254,8 @@ Live timing via OpenF1 · strategy what-if simulator · image/video export · vo
 | No fuel, tyre temperature, ERS or brake temperature data | Never display them; fuel load is modelled, not measured |
 | 2026 rules replace DRS with active aero and an overtake mode | DRS-based features apply to ≤ 2025; check what the DRS channel means for 2026 sessions |
 | Cold session loads download a lot of data | Precompute or warm the demo sessions; show progress |
-| F1's live-timing servers (and FastF1's mirror) reject cloud IPs; confirmed on GitHub Actions | CI skips `livedata` tests. A cloud-hosted API can't download sessions itself: ship a warmed cache with it |
+| When the safety car leads the field through the pit lane, FastF1 and OpenF1 both record each pass as a pit stop, and their tyre ages for those laps disagree | Pitwall counts a stop only when tyre age resets. That fixes most drivers, but one can still be over-counted (Stroll shows 5 in 2025 Australia; really 2) |
+| **Since ~15 Oct 2026, F1's timing archive returns 401 without an F1 TV login** ([Fast-F1#978](https://github.com/theOehrly/Fast-F1/issues/978)); FastF1's mirror has no 2023–2026 data | Only cached sessions load (2024 Bahrain Q/R, 2024 Saudi R, 2025 Australia R); others get results only. CI skips `livedata` tests. **Never clear `app/f1_cache`**: a backup is at `F:\Code\Backups\pitwall-f1-cache-2026-10-17` |
 
 ## Engineering standards
 

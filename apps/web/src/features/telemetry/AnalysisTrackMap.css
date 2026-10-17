@@ -1,0 +1,85 @@
+.analysis-map {
+  width: 34%;
+  min-width: 260px;
+  display: flex;
+  flex-direction: column;
+  border-left: 1px solid var(--border-default);
+  background: var(--bg-primary);
+}
+
+.analysis-map--empty {
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
+
+.analysis-map-head,
+.analysis-map-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--text-xs);
+  color: var(--text-secondary);
+  flex-shrink: 0;
+}
+
+.analysis-map-title {
+  font-family: var(--font-data);
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.analysis-map-modes { display: flex; gap: 2px; }
+
+.analysis-map-modes button {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-default);
+  color: var(--text-secondary);
+  font-size: 10px;
+  padding: 2px 8px;
+  cursor: pointer;
+}
+.analysis-map-modes button:first-child { border-radius: var(--radius-sm) 0 0 var(--radius-sm); }
+.analysis-map-modes button:last-child { border-radius: 0 var(--radius-sm) var(--radius-sm) 0; }
+.analysis-map-modes button.active { background: var(--accent-muted); border-color: var(--accent); color: var(--text-primary); }
+
+.analysis-map-svg {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  cursor: crosshair;
+}
+
+.track-line {
+  fill: none;
+  stroke-width: 4px;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke; /* same thickness at any zoom */
+}
+
+.corner-label {
+  fill: var(--text-secondary);
+  font-family: var(--font-data);
+  font-weight: 700;
+  text-anchor: middle;
+  dominant-baseline: middle;
+  pointer-events: none;
+}
+
+.cursor-dot {
+  fill: #fff;
+  stroke: var(--bg-primary);
+  stroke-width: 2px;
+  vector-effect: non-scaling-stroke;
+  pointer-events: none;
+}
+
+.speed-legend, .sector-legend { display: flex; align-items: center; gap: 6px; }
+.speed-ramp { display: inline-block; width: 80px; height: 8px; border-radius: 2px; }
+.sector-legend span { display: flex; align-items: center; gap: 3px; }
+.sector-legend i { display: inline-block; width: 8px; height: 8px; border-radius: 2px; }
+.cursor-readout { font-family: var(--font-data); color: var(--text-primary); }

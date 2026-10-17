@@ -98,6 +98,7 @@ export interface RaceControlMessage {
 }
 
 export interface Corner {
+  distance?: number;
   number: number;
   x: number;
   y: number;

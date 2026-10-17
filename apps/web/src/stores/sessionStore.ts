@@ -18,13 +18,41 @@ interface SessionState {
   clearFocus: () => void;
 }
 
+type UrlState = Pick<
+  SessionState,
+  'selectedYear' | 'selectedEvent' | 'selectedSessionType' | 'selectedDrivers' | 'selectedLap' | 'focusedDriver'
+>;
+
+// The URL is the source of truth on load, so any view can be reloaded or shared, e.g.
+// /telemetry?year=2024&event=Bahrain+Grand+Prix&session=R&drivers=VER,LEC&lap=12
+function readUrl(): UrlState {
+  const q = new URLSearchParams(window.location.search);
+  const lap = Number(q.get('lap'));
+  const focus = q.get('focus');
+  const drivers = (q.get('drivers') ?? '').split(',').filter(Boolean).slice(0, 3);
+  return {
+    selectedYear: Number(q.get('year')) || 2024,
+    selectedEvent: q.get('event'),
+    selectedSessionType: q.get('session'),
+    selectedDrivers: drivers.length || !focus ? drivers : [focus],
+    selectedLap: Number.isInteger(lap) && lap > 0 ? lap : 0,
+    focusedDriver: focus,
+  };
+}
+
+/** Query string for the current selection; the sidebar links carry it between pages. */
+export function toQuery(s: UrlState): string {
+  const q = new URLSearchParams({ year: String(s.selectedYear) });
+  if (s.selectedEvent) q.set('event', s.selectedEvent);
+  if (s.selectedSessionType) q.set('session', s.selectedSessionType);
+  if (s.selectedDrivers.length) q.set('drivers', s.selectedDrivers.join(','));
+  if (s.selectedLap) q.set('lap', String(s.selectedLap));
+  if (s.focusedDriver) q.set('focus', s.focusedDriver);
+  return q.toString().replace(/%2C/g, ','); // readable driver lists
+}
+
 export const useSessionStore = create<SessionState>((set) => ({
-  selectedYear: 2024,
-  selectedEvent: null,
-  selectedSessionType: null,
-  selectedDrivers: [],
-  selectedLap: 0,
-  focusedDriver: null,
+  ...readUrl(),
 
   setYear: (year) => set({
     selectedYear: year,
@@ -64,3 +92,12 @@ export const useSessionStore = create<SessionState>((set) => ({
   focusDriver: (driver) => set({ focusedDriver: driver, selectedDrivers: [driver] }),
   clearFocus: () => set({ focusedDriver: null }),
 }));
+
+// Mirror the selection into the URL. replaceState (not router navigation) so every click
+// doesn't add a history entry; router's own history.state is kept so back/forward still work.
+useSessionStore.subscribe((s) => {
+  const query = toQuery(s);
+  if (query !== window.location.search.slice(1)) {
+    window.history.replaceState(window.history.state, '', `${window.location.pathname}?${query}`);
+  }
+});
